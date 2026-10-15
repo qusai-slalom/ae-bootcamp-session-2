@@ -1,76 +1,84 @@
-import React, { useState, useEffect } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import './App.css';
+import * as api from './api';
+import TaskForm from './components/TaskForm';
+import TaskItem from './components/TaskItem';
+
+const FILTERS = [
+  { value: 'all', label: 'All' },
+  { value: 'active', label: 'Active' },
+  { value: 'completed', label: 'Completed' },
+];
+
+const matchesFilter = (task, filter) => {
+  if (filter === 'active') return !task.completed;
+  if (filter === 'completed') return task.completed;
+  return true;
+};
 
 function App() {
-  const [data, setData] = useState([]);
+  const [tasks, setTasks] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
-  const [newItem, setNewItem] = useState('');
+  const [loadError, setLoadError] = useState(null);
+  const [actionError, setActionError] = useState(null);
+  const [filter, setFilter] = useState('all');
 
-  useEffect(() => {
-    fetchData();
+  const refresh = useCallback(async () => {
+    setTasks(await api.fetchTasks());
   }, []);
 
-  const fetchData = async () => {
-    try {
-      setLoading(true);
-      const response = await fetch('/api/items');
-      if (!response.ok) {
-        throw new Error('Network response was not ok');
+  useEffect(() => {
+    const load = async () => {
+      try {
+        await refresh();
+      } catch (err) {
+        setLoadError(`Failed to load tasks: ${err.message}`);
+      } finally {
+        setLoading(false);
       }
-      const result = await response.json();
-      setData(result);
-      setError(null);
+    };
+    load();
+  }, [refresh]);
+
+  // Form handlers rethrow so the form can show the error and keep the user's input.
+  const addTask = async (values) => {
+    await api.createTask(values);
+    await refresh();
+  };
+
+  const saveTask = async (task, values) => {
+    await api.updateTask(task.id, values);
+    await refresh();
+  };
+
+  const runAction = async (action) => {
+    try {
+      await action();
+      await refresh();
+      setActionError(null);
     } catch (err) {
-      setError('Failed to fetch data: ' + err.message);
-      console.error('Error fetching data:', err);
-    } finally {
-      setLoading(false);
+      setActionError(err.message);
     }
   };
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    if (!newItem.trim()) return;
+  const toggleTask = (task) => runAction(() => api.updateTask(task.id, { completed: !task.completed }));
 
-    try {
-      const response = await fetch('/api/items', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ name: newItem }),
-      });
-
-      if (!response.ok) {
-        throw new Error('Failed to add item');
-      }
-
-      const result = await response.json();
-      setData([...data, result]);
-      setNewItem('');
-    } catch (err) {
-      setError('Error adding item: ' + err.message);
-      console.error('Error adding item:', err);
-    }
+  const deleteTask = (task) => {
+    if (!window.confirm(`Delete "${task.title}"? This cannot be undone.`)) return;
+    runAction(() => api.deleteTask(task.id));
   };
 
-  const handleDelete = async (itemId) => {
-    try {
-      const response = await fetch(`/api/items/${itemId}`, {
-        method: 'DELETE',
-      });
+  const clearCompleted = () => {
+    if (!window.confirm('Delete all completed tasks? This cannot be undone.')) return;
+    runAction(api.deleteCompletedTasks);
+  };
 
-      if (!response.ok) {
-        throw new Error('Failed to delete item');
-      }
+  const visibleTasks = tasks.filter((task) => matchesFilter(task, filter));
+  const hasCompleted = tasks.some((task) => task.completed);
 
-      setData(data.filter(item => item.id !== itemId));
-      setError(null);
-    } catch (err) {
-      setError('Error deleting item: ' + err.message);
-      console.error('Error deleting item:', err);
-    }
+  const renderEmptyState = () => {
+    if (tasks.length === 0) return 'No tasks yet. Add one above!';
+    return `No ${filter} tasks.`;
   };
 
   return (
@@ -81,42 +89,64 @@ function App() {
       </header>
 
       <main>
-        <section className="add-item-section">
-          <h2>Add New Item</h2>
-          <form onSubmit={handleSubmit}>
-            <input
-              type="text"
-              value={newItem}
-              onChange={(e) => setNewItem(e.target.value)}
-              placeholder="Enter item name"
-            />
-            <button type="submit">Add Item</button>
-          </form>
+        <section className="add-task-section">
+          <h2>Add task</h2>
+          <TaskForm idPrefix="new" submitLabel="Add task" onSubmit={addTask} />
         </section>
 
-        <section className="items-section">
-          <h2>Items from Database</h2>
-          {loading && <p>Loading data...</p>}
-          {error && <p className="error">{error}</p>}
-          {!loading && !error && (
-            <ul>
-              {data.length > 0 ? (
-                data.map((item) => (
-                  <li key={item.id}>
-                    <span>{item.name}</span>
-                    <button 
-                      onClick={() => handleDelete(item.id)}
-                      className="delete-btn"
-                      type="button"
-                    >
-                      Delete
-                    </button>
-                  </li>
-                ))
+        <section className="tasks-section">
+          <h2>Tasks</h2>
+
+          <div className="filters" role="group" aria-label="Filter tasks">
+            {FILTERS.map(({ value, label }) => (
+              <button
+                key={value}
+                type="button"
+                className={`btn btn-secondary${filter === value ? ' btn-active' : ''}`}
+                aria-pressed={filter === value}
+                onClick={() => setFilter(value)}
+              >
+                {label}
+              </button>
+            ))}
+          </div>
+
+          {loading && <p role="status">Loading tasks...</p>}
+          {loadError && (
+            <p className="error" role="alert">
+              {loadError}
+            </p>
+          )}
+          {actionError && (
+            <p className="error" role="alert">
+              {actionError}
+            </p>
+          )}
+
+          {!loading && !loadError && (
+            <>
+              {visibleTasks.length > 0 ? (
+                <ul className="task-list">
+                  {visibleTasks.map((task) => (
+                    <TaskItem
+                      key={task.id}
+                      task={task}
+                      onToggle={toggleTask}
+                      onSave={saveTask}
+                      onDelete={deleteTask}
+                    />
+                  ))}
+                </ul>
               ) : (
-                <p>No items found. Add some!</p>
+                <p className="empty-state">{renderEmptyState()}</p>
               )}
-            </ul>
+
+              {hasCompleted && (
+                <button type="button" className="btn btn-danger" onClick={clearCompleted}>
+                  Clear completed
+                </button>
+              )}
+            </>
           )}
         </section>
       </main>

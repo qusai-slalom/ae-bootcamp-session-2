@@ -1,16 +1,33 @@
+:root {
+  --color-primary: #2563eb;
+  --color-success: #16a34a;
+  --color-danger: #dc2626;
+  --color-text: #1f2937;
+  --color-muted: #6b7280;
+  --color-bg: #f5f5f5;
+  --color-surface: #ffffff;
+  --color-border: #d1d5db;
+}
+
+body {
+  background-color: var(--color-bg);
+  color: var(--color-text);
+  font-size: 16px;
+}
+
 .App {
-  text-align: center;
   max-width: 800px;
   margin: 0 auto;
-  padding: 20px;
+  padding: 16px;
 }
 
 .App-header {
-  background-color: #282c34;
-  padding: 20px;
-  color: white;
+  background-color: var(--color-text);
+  color: var(--color-surface);
+  padding: 24px;
   border-radius: 8px;
-  margin-bottom: 20px;
+  margin-bottom: 24px;
+  text-align: center;
 }
 
 .App-header h1 {
@@ -18,77 +35,198 @@
   font-size: 1.8rem;
 }
 
+.App-header p {
+  margin: 8px 0 0;
+}
+
 main {
   display: flex;
   flex-direction: column;
-  gap: 20px;
+  gap: 24px;
 }
 
 section {
-  background-color: #f5f5f5;
-  padding: 20px;
+  background-color: var(--color-surface);
+  padding: 24px;
   border-radius: 8px;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  border: 1px solid var(--color-border);
 }
 
-.add-item-section form {
+section h2 {
+  margin: 0 0 16px;
+  font-size: 1.25rem;
+}
+
+/* Forms */
+.task-form {
   display: flex;
-  gap: 10px;
-  margin-top: 10px;
+  flex-direction: column;
+  gap: 12px;
 }
 
-input {
-  flex: 1;
-  padding: 8px;
-  border: 1px solid #ddd;
-  border-radius: 4px;
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
 }
 
-button {
+.field label {
+  font-weight: 600;
+}
+
+input[type='text'],
+input[type='date'] {
+  padding: 8px 12px;
+  min-height: 44px;
+  box-sizing: border-box;
+  border: 1px solid var(--color-border);
+  border-radius: 6px;
+  font-size: 1rem;
+  color: var(--color-text);
+}
+
+.form-actions {
+  display: flex;
+  gap: 8px;
+}
+
+/* Buttons */
+.btn {
   padding: 8px 16px;
-  background-color: #61dafb;
-  color: #282c34;
-  border: none;
-  border-radius: 4px;
+  min-height: 44px;
+  min-width: 44px;
+  border-radius: 6px;
+  border: 1px solid transparent;
+  font-size: 1rem;
+  font-weight: 600;
   cursor: pointer;
-  font-weight: bold;
 }
 
-button:hover {
-  background-color: #21a1c9;
+.btn-primary {
+  background-color: var(--color-primary);
+  color: #ffffff;
 }
 
-ul {
-  list-style-type: none;
-  padding: 0;
+.btn-secondary {
+  background-color: var(--color-surface);
+  border-color: var(--color-border);
+  color: var(--color-text);
 }
 
-li {
-  padding: 10px;
-  border-bottom: 1px solid #ddd;
-  text-align: left;
+.btn-danger {
+  background-color: var(--color-danger);
+  color: #ffffff;
+}
+
+.btn:hover {
+  opacity: 0.9;
+}
+
+.btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.btn-secondary.btn-active {
+  border-color: var(--color-primary);
+  color: var(--color-primary);
+}
+
+:focus-visible {
+  outline: 3px solid var(--color-primary);
+  outline-offset: 2px;
+}
+
+/* Filters */
+.filters {
   display: flex;
-  justify-content: space-between;
-  align-items: center;
+  gap: 8px;
+  margin-bottom: 16px;
+  flex-wrap: wrap;
 }
 
-li:last-child {
+/* Task list */
+.task-list {
+  list-style: none;
+  padding: 0;
+  margin: 0 0 16px;
+}
+
+.task-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 12px 0;
+  border-bottom: 1px solid var(--color-border);
+  text-align: left;
+}
+
+.task-item:last-child {
   border-bottom: none;
 }
 
-.delete-btn {
-  background-color: #f44336;
-  color: white;
-  padding: 6px 12px;
-  font-size: 0.8rem;
-  margin-left: 10px;
+.task-item .task-form {
+  flex: 1;
 }
 
-.delete-btn:hover {
-  background-color: #d32f2f;
+.task-checkbox {
+  width: 24px;
+  height: 24px;
+  margin-top: 2px;
+  accent-color: var(--color-success);
+  flex-shrink: 0;
+}
+
+.task-body {
+  flex: 1;
+  min-width: 0;
+}
+
+.task-title {
+  font-weight: 600;
+  overflow-wrap: anywhere;
+}
+
+.task-description,
+.task-due {
+  margin: 4px 0 0;
+  color: var(--color-muted);
+  font-size: 0.875rem;
+}
+
+.task-completed .task-title {
+  text-decoration: line-through;
+  color: var(--color-muted);
+}
+
+.task-actions {
+  display: flex;
+  gap: 8px;
+  flex-shrink: 0;
+}
+
+.badge-overdue {
+  margin-left: 8px;
+  color: var(--color-danger);
+  font-weight: 600;
+}
+
+.empty-state {
+  color: var(--color-muted);
 }
 
 .error {
-  color: #d32f2f;
-  font-weight: bold;
+  color: var(--color-danger);
+  font-weight: 600;
+  margin: 0;
+}
+
+@media (max-width: 480px) {
+  .task-item {
+    flex-wrap: wrap;
+  }
+
+  .task-actions {
+    width: 100%;
+  }
 }
