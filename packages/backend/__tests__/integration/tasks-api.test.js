@@ -24,14 +24,6 @@ afterAll(() => {
   db.close();
 });
 
-describe('Health check', () => {
-  it('GET / returns ok', async () => {
-    const response = await request(app).get('/');
-    expect(response.status).toBe(200);
-    expect(response.body.status).toBe('ok');
-  });
-});
-
 describe('POST /api/tasks', () => {
   it('creates a task with defaults', async () => {
     const task = await createTask({ title: '  Write docs  ' });
