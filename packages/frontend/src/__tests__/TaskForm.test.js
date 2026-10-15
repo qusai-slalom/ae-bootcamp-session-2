@@ -55,6 +55,18 @@ describe('TaskForm', () => {
     expect(screen.getByLabelText('Title')).toHaveValue('Keep me');
   });
 
+  test('tells the user when the title is over the length limit and does not submit', async () => {
+    const { onSubmit, user } = setup();
+
+    await user.click(screen.getByLabelText('Title'));
+    await user.paste('a'.repeat(201));
+
+    expect(screen.getByRole('alert')).toHaveTextContent('Title must be 200 characters or fewer');
+
+    await user.click(screen.getByRole('button', { name: 'Add task' }));
+    expect(onSubmit).not.toHaveBeenCalled();
+  });
+
   test('only shows a Cancel button when onCancel is provided', async () => {
     const onCancel = jest.fn();
     const { user } = setup({ onCancel });

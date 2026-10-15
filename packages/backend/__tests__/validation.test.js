@@ -41,7 +41,8 @@ describe('validateTaskFields', () => {
 
   describe('description', () => {
     it('trims the description', () => {
-      const result = validateTaskFields({ title: 'A', description: ' notes ' }, { requireTitle: true });
+      const body = { title: 'A', description: ' notes ' };
+      const result = validateTaskFields(body, { requireTitle: true });
       expect(result.values.description).toBe('notes');
     });
 
@@ -53,7 +54,8 @@ describe('validateTaskFields', () => {
 
   describe('dueDate', () => {
     it('accepts a valid date', () => {
-      const result = validateTaskFields({ title: 'A', dueDate: '2030-01-31' }, { requireTitle: true });
+      const body = { title: 'A', dueDate: '2030-01-31' };
+      const result = validateTaskFields(body, { requireTitle: true });
       expect(result.values.dueDate).toBe('2030-01-31');
     });
 
@@ -70,7 +72,8 @@ describe('validateTaskFields', () => {
 
   describe('completed', () => {
     it('accepts a boolean', () => {
-      expect(validateTaskFields({ completed: false }, { requireTitle: false }).values.completed).toBe(false);
+      const result = validateTaskFields({ completed: false }, { requireTitle: false });
+      expect(result.values.completed).toBe(false);
     });
 
     it('rejects a non-boolean', () => {

@@ -1,8 +1,9 @@
 import React, { useCallback, useEffect, useState } from 'react';
-import './App.css';
+
 import * as api from './api';
 import TaskForm from './components/TaskForm';
 import TaskItem from './components/TaskItem';
+import './App.css';
 
 const FILTERS = [
   { value: 'all', label: 'All' },
@@ -22,7 +23,7 @@ function App() {
   const [loadError, setLoadError] = useState(null);
   const [actionError, setActionError] = useState(null);
   const [filter, setFilter] = useState('all');
-
+  const [announcement, setAnnouncement] = useState('');
   const refresh = useCallback(async () => {
     setTasks(await api.fetchTasks());
   }, []);
@@ -44,33 +45,39 @@ function App() {
   const addTask = async (values) => {
     await api.createTask(values);
     await refresh();
+    setAnnouncement(`Task "${values.title.trim()}" added`);
   };
 
   const saveTask = async (task, values) => {
     await api.updateTask(task.id, values);
     await refresh();
+    setAnnouncement(`Task "${values.title.trim()}" updated`);
   };
 
-  const runAction = async (action) => {
+  const runAction = async (action, message) => {
     try {
       await action();
       await refresh();
       setActionError(null);
+      setAnnouncement(message);
     } catch (err) {
       setActionError(err.message);
     }
   };
 
-  const toggleTask = (task) => runAction(() => api.updateTask(task.id, { completed: !task.completed }));
+  const toggleTask = (task) => {
+    const message = `Task "${task.title}" ${task.completed ? 'reopened' : 'completed'}`;
+    return runAction(() => api.updateTask(task.id, { completed: !task.completed }), message);
+  };
 
   const deleteTask = (task) => {
     if (!window.confirm(`Delete "${task.title}"? This cannot be undone.`)) return;
-    runAction(() => api.deleteTask(task.id));
+    runAction(() => api.deleteTask(task.id), `Task "${task.title}" deleted`);
   };
 
   const clearCompleted = () => {
     if (!window.confirm('Delete all completed tasks? This cannot be undone.')) return;
-    runAction(api.deleteCompletedTasks);
+    runAction(api.deleteCompletedTasks, 'Completed tasks cleared');
   };
 
   const visibleTasks = tasks.filter((task) => matchesFilter(task, filter));
@@ -83,6 +90,9 @@ function App() {
 
   return (
     <div className="App">
+      <p className="sr-only" role="status">
+        {announcement}
+      </p>
       <header className="App-header">
         <h1>To Do App</h1>
         <p>Keep track of your tasks</p>

@@ -32,13 +32,15 @@ function TaskItem({ task, onToggle, onSave, onDelete }) {
 
   return (
     <li className={`task-item${task.completed ? ' task-completed' : ''}`}>
-      <input
-        type="checkbox"
-        className="task-checkbox"
-        checked={task.completed}
-        onChange={() => onToggle(task)}
-        aria-label={`Mark "${task.title}" as completed`}
-      />
+      <label className="task-checkbox-label">
+        <input
+          type="checkbox"
+          className="task-checkbox"
+          checked={task.completed}
+          onChange={() => onToggle(task)}
+          aria-label={`Mark "${task.title}" as completed`}
+        />
+      </label>
       <div className="task-body">
         <span className="task-title">{task.title}</span>
         {task.description && <p className="task-description">{task.description}</p>}

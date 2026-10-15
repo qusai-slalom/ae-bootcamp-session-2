@@ -10,12 +10,12 @@ import { configure } from '@testing-library/dom';
 // so React's act() wrappers must be registered on it too or every interaction logs act warnings.
 configure({
   asyncWrapper: async (callback) => {
-    const previous = globalThis.IS_REACT_ACT_ENVIRONMENT;
-    globalThis.IS_REACT_ACT_ENVIRONMENT = false;
+    const previous = window.IS_REACT_ACT_ENVIRONMENT;
+    window.IS_REACT_ACT_ENVIRONMENT = false;
     try {
       return await callback();
     } finally {
-      globalThis.IS_REACT_ACT_ENVIRONMENT = previous;
+      window.IS_REACT_ACT_ENVIRONMENT = previous;
     }
   },
   eventWrapper: (callback) => {

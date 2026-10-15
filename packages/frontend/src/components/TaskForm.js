@@ -7,6 +7,7 @@ function TaskForm({ idPrefix, initialValues = EMPTY_VALUES, submitLabel, onSubmi
   const [values, setValues] = useState(initialValues);
   const [error, setError] = useState('');
 
+  const titleTooLong = values.title.trim().length > MAX_TITLE_LENGTH;
   const handleChange = (field) => (event) => {
     setValues({ ...values, [field]: event.target.value });
   };
@@ -19,6 +20,7 @@ function TaskForm({ idPrefix, initialValues = EMPTY_VALUES, submitLabel, onSubmi
       return;
     }
 
+    if (titleTooLong) return;
     try {
       await onSubmit({
         title: values.title,
@@ -40,9 +42,14 @@ function TaskForm({ idPrefix, initialValues = EMPTY_VALUES, submitLabel, onSubmi
           id={`${idPrefix}-title`}
           type="text"
           value={values.title}
-          maxLength={MAX_TITLE_LENGTH}
+          aria-invalid={titleTooLong}
           onChange={handleChange('title')}
         />
+        {titleTooLong && (
+          <p className="error" role="alert">
+            Title must be {MAX_TITLE_LENGTH} characters or fewer
+          </p>
+        )}
       </div>
       <div className="field">
         <label htmlFor={`${idPrefix}-description`}>Description (optional)</label>

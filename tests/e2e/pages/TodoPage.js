@@ -53,7 +53,8 @@ class TodoPage {
   }
 
   async filterBy(name) {
-    await this.page.getByRole('group', { name: 'Filter tasks' }).getByRole('button', { name }).click();
+    const filters = this.page.getByRole('group', { name: 'Filter tasks' });
+    await filters.getByRole('button', { name }).click();
   }
 }
 

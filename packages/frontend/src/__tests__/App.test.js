@@ -188,6 +188,21 @@ describe('App', () => {
     expect(screen.queryByRole('button', { name: 'Clear completed' })).not.toBeInTheDocument();
   });
 
+  test('announces added and deleted tasks to screen readers', async () => {
+    const user = userEvent.setup();
+    render(<App />);
+    await screen.findByText('No tasks yet. Add one above!');
+
+    await user.type(screen.getByLabelText('Title'), 'Announce me');
+    await user.click(screen.getByRole('button', { name: 'Add task' }));
+    await screen.findByText('Announce me');
+    expect(screen.getByRole('status')).toHaveTextContent('Task "Announce me" added');
+
+    await user.click(screen.getByRole('button', { name: /Delete "Announce me"/ }));
+    await screen.findByText('No tasks yet. Add one above!');
+    expect(screen.getByRole('status')).toHaveTextContent('Task "Announce me" deleted');
+  });
+
   test('shows an error when an action fails', async () => {
     tasks = [makeTask({ title: 'Stubborn' })];
     server.use(

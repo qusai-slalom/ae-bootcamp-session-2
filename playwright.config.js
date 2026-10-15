@@ -20,7 +20,7 @@ module.exports = defineConfig({
     {
       command: 'npm run start:backend',
       url: `http://localhost:${BACKEND_PORT}`,
-      env: { PORT: String(BACKEND_PORT) },
+      env: { PORT: String(BACKEND_PORT), DB_PATH: ':memory:' },
       reuseExistingServer: !process.env.CI,
     },
     {

@@ -1,11 +1,11 @@
 {
   "name": "backend",
   "version": "1.0.0",
-  "description": "Node.js backend with in-memory database",
+  "description": "Node.js backend with a SQLite database",
   "main": "src/index.js",
   "scripts": {
     "start": "nodemon src/index.js",
-    "test": "jest --detectOpenHandles --testPathIgnorePatterns integration",
+    "test": "jest --detectOpenHandles",
     "test:integration": "jest --detectOpenHandles --testPathPattern integration"
   },
   "dependencies": {

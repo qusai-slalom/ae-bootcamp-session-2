@@ -1,3 +1,6 @@
+const fs = require('fs');
+const path = require('path');
+
 const express = require('express');
 const cors = require('cors');
 const morgan = require('morgan');
@@ -11,7 +14,12 @@ app.use(cors());
 app.use(express.json());
 app.use(morgan('dev'));
 
-const db = new Database(':memory:');
+// Use DB_PATH=':memory:' for a throwaway database (tests); otherwise tasks persist on disk.
+const DB_PATH = process.env.DB_PATH || path.join(__dirname, '..', 'data', 'todo.db');
+if (DB_PATH !== ':memory:') {
+  fs.mkdirSync(path.dirname(DB_PATH), { recursive: true });
+}
+const db = new Database(DB_PATH);
 
 db.exec(`
   CREATE TABLE IF NOT EXISTS tasks (
