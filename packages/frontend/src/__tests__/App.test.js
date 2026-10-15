@@ -71,7 +71,9 @@ describe('App', () => {
     server.use(rest.get('/api/tasks', (req, res, ctx) => res(ctx.status(500))));
     render(<App />);
 
-    expect(await screen.findByRole('alert')).toHaveTextContent(/Failed to load tasks/);
+    expect(await screen.findByRole('alert')).toHaveTextContent(
+      'Failed to load tasks: Request failed (500)'
+    );
   });
 
   test('adds a task with a due date', async () => {
@@ -85,6 +87,9 @@ describe('App', () => {
 
     expect(await screen.findByText('Pay rent')).toBeInTheDocument();
     expect(screen.getByText(/Due: Mar 1, 2099/)).toBeInTheDocument();
+    expect(tasks).toEqual([
+      expect.objectContaining({ title: 'Pay rent', dueDate: '2099-03-01' }),
+    ]);
   });
 
   test('keeps the input and shows the error when adding fails', async () => {
@@ -112,6 +117,12 @@ describe('App', () => {
     await user.click(await screen.findByRole('checkbox'));
 
     expect(await screen.findByRole('checkbox', { checked: true })).toBeInTheDocument();
+    expect(tasks[0].completed).toBe(true);
+
+    await user.click(screen.getByRole('checkbox'));
+
+    expect(await screen.findByRole('checkbox', { checked: false })).toBeInTheDocument();
+    expect(tasks[0].completed).toBe(false);
   });
 
   test('edits a task', async () => {
@@ -171,6 +182,18 @@ describe('App', () => {
     await user.click(screen.getByRole('button', { name: 'All' }));
     expect(screen.getByText('Open task')).toBeInTheDocument();
     expect(screen.getByText('Done task')).toBeInTheDocument();
+  });
+
+  test('shows a filter-specific message when no tasks match', async () => {
+    tasks = [makeTask({ title: 'Open task' })];
+    const user = userEvent.setup();
+    render(<App />);
+    await screen.findByText('Open task');
+
+    await user.click(screen.getByRole('button', { name: 'Completed' }));
+
+    expect(screen.getByText('No completed tasks.')).toBeInTheDocument();
+    expect(screen.queryByText('Open task')).not.toBeInTheDocument();
   });
 
   test('clears all completed tasks after confirmation', async () => {

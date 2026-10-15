@@ -40,4 +40,30 @@ describe('app', () => {
 
     expect(table).toEqual({ name: 'tasks' });
   });
+
+  describe('when the database fails', () => {
+    beforeEach(() => {
+      jest.spyOn(db, 'prepare').mockImplementation(() => {
+        throw new Error('database unavailable');
+      });
+      jest.spyOn(console, 'error').mockImplementation(() => {});
+    });
+
+    afterEach(() => {
+      jest.restoreAllMocks();
+    });
+
+    it.each([
+      ['GET', '/api/tasks', undefined, 'Failed to fetch tasks'],
+      ['POST', '/api/tasks', { title: 'Task' }, 'Failed to create task'],
+      ['PATCH', '/api/tasks/1', { title: 'Task' }, 'Failed to update task'],
+      ['DELETE', '/api/tasks/1', undefined, 'Failed to delete task'],
+      ['DELETE', '/api/tasks/completed', undefined, 'Failed to delete completed tasks'],
+    ])('%s %s returns 500 with a clear message', async (method, url, body, message) => {
+      const response = await request(app)[method.toLowerCase()](url).send(body);
+
+      expect(response.status).toBe(500);
+      expect(response.body).toEqual({ error: message });
+    });
+  });
 });

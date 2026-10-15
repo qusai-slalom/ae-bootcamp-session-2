@@ -16,6 +16,9 @@ const getTitles = async () => {
   return response.body.map((task) => task.title);
 };
 
+const setCompletedAt = (id, timestamp) =>
+  db.prepare('UPDATE tasks SET completed_at = ? WHERE id = ?').run(timestamp, id);
+
 beforeEach(() => {
   db.exec('DELETE FROM tasks');
 });
@@ -104,8 +107,10 @@ describe('GET /api/tasks', () => {
     await createTask({ title: 'C' });
 
     await completeTask(a.id);
-    await new Promise((resolve) => setTimeout(resolve, 5));
     await completeTask(b.id);
+    // Explicit timestamps keep the order deterministic instead of relying on timer resolution.
+    setCompletedAt(a.id, '2030-01-01T00:00:00.000Z');
+    setCompletedAt(b.id, '2030-01-02T00:00:00.000Z');
 
     expect(await getTitles()).toEqual(['C', 'B', 'A']);
   });
